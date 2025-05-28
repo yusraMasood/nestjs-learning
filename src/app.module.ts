@@ -10,4 +10,4 @@ import { TasksModule } from './tasks/tasks.module';
   controllers: [AppController],
   providers: [AppService, MessageFormatterService, LoggerService],
 })
-export class AppModule { }
+export class AppModule {}

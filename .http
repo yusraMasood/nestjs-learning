@@ -1,5 +1,42 @@
-http://localhost:3000 
+#variable
 
-GET http://localhost:3000/tasks 
+@baseUrl=http://localhost:3000 
 
-GET http://localhost:3000/tasks/123
+@contentType= application/json
+
+http://{{baseUrl}}
+
+### GET ALL TASK
+GET {{baseUrl}}/tasks 
+
+
+### GET  TASK by id
+GET {{baseUrl}}/tasks/{{taskId}}
+
+###create new task
+# @name createTask
+POST {{baseUrl}}/tasks
+Content-Type: {{contentType}}
+
+{
+    "title":"learn nodejs",
+    "description": "Complete the nodes",
+    "status":"OPEN"
+}
+
+### Set the task id
+
+@taskId = {{createTask.response.body.id}}
+###update task 
+
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Content-Type: {{contentType}}
+
+{
+   "status":"IN_PROGRESS"
+}
+
+###Delete task by id
+
+DELETE {{baseUrl}}/tasks/{{taskId}}
+Content-Type: {{contentType}}

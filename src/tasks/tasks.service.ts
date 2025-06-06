@@ -1,39 +1,55 @@
 import { Injectable } from '@nestjs/common';
-import { ITask } from './task.model';
+import { TaskStatus } from './task.model';
 import { CreateTaskDto } from './create-task.dto';
-import { randomUUID } from 'crypto';
 import { UpdateTaskDto } from './update-task.dto';
+import { WrongTaskStatusException } from './exceptions/wrong-task-status.exception';
+import { Repository } from 'typeorm';
+import { Task } from './task.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class TasksService {
-  private tasks: ITask[] = [];
-  findAll(): ITask[] {
-    return this.tasks;
+  constructor(
+    @InjectRepository(Task)
+    private readonly tasksRepository: Repository<Task>,
+  ) { }
+  public async findAll(): Promise<Task[]> {
+    return await this.tasksRepository.find();
   }
-  findOne(id: string): ITask | undefined {
-    return this.tasks.find(task => task.id === id);
+  public async findOne(id: string): Promise<Task | null> {
+    return await this.tasksRepository.findOneBy({ id });
   }
-  create(createTaskDto: CreateTaskDto): ITask {
-    const task: ITask = {
-      id: randomUUID(),
-      ...createTaskDto
+  public async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+    return await this.tasksRepository.save(createTaskDto);
+  }
+
+  public async deleteTask(task: Task): Promise<void> {
+    // this.tasks = this.tasks.filter(filteredTask => filteredTask.id !== task.id);
+    await this.tasksRepository.delete(task);
+  }
+  public async updateTask(
+    task: Task,
+    updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
+    if (
+      updateTaskDto.status &&
+      !this.isValidStatusTransition(task.status, updateTaskDto.status)
+    ) {
+      throw new WrongTaskStatusException();
     }
-    this.tasks.push(task)
-    return task
-
+    Object.assign(task, updateTaskDto);
+    return await this.tasksRepository.save(task);
   }
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Delete a task by ID.
-   * @param id The ID of the task to delete
-   */
-  /*******  da97efbc-de6a-4fe9-9515-8f9d44ba345c  *******/
-  deleteTask(task: ITask): void {
-    this.tasks = this.tasks.filter(filteredTask => filteredTask.id !== task.id)
-  }
-  public updateTask(task: ITask, updateTaskDto: UpdateTaskDto): ITask {
-    Object.assign(task, updateTaskDto)
-    return task
 
+  private isValidStatusTransition(
+    currentStatus: TaskStatus,
+    newStatus: TaskStatus,
+  ): boolean {
+    const statusOrder = [
+      TaskStatus.OPEN,
+      TaskStatus.IN_PROGRESS,
+      TaskStatus.DONE,
+    ];
+    return statusOrder.indexOf(currentStatus) <= statusOrder.indexOf(newStatus);
   }
 }

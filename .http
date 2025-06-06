@@ -4,7 +4,7 @@
 
 @contentType= application/json
 
-http://{{baseUrl}}
+GET {{baseUrl}}
 
 ### GET ALL TASK
 GET {{baseUrl}}/tasks 
@@ -33,7 +33,8 @@ PATCH {{baseUrl}}/tasks/{{taskId}}
 Content-Type: {{contentType}}
 
 {
-   "status":"IN_PROGRESS"
+   "status":"IN_PROGRESS",
+   "title":"LEARNING NEXTJS"
 }
 
 ###Delete task by id
